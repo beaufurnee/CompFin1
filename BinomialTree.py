@@ -24,8 +24,8 @@ def b_tree(K, r, s0, sigma, time, steps):
     l_option = []
     
     # Calculate the stock values at expiration 
-    for i in range(steps):
-        l_stocks.append(s0 * u**((steps-1-i) - i))
+    for i in range(steps+1):
+        l_stocks.append(s0 * u**((steps-i) - i))
         
     # Turn stock value into option value
     for el in l_stocks:
@@ -37,4 +37,4 @@ def b_tree(K, r, s0, sigma, time, steps):
             l_option[j] = (p * l_option[j] + (1-p) * l_option[j+1]) * math.exp(-r * dt)
         l_option.pop()
     
-    return l_option
+    return l_option[0]
