@@ -18,7 +18,7 @@ def b_tree(K, r, s0, sigma, time, steps):
     d = math.exp(-sigma*math.sqrt(dt))
     
     p = (math.exp(r*dt) - d) / (u - d)
-    print(math.exp(r*dt))
+    print(p)
     
     # Lists to store the stock prices and option prices
     l_stocks = []
