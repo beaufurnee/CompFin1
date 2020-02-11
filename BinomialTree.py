@@ -42,11 +42,18 @@ def b_tree(K, r, s0, sigma, time, steps):
 
     return l_option[0]
 
-def options(steps_range,increment,K, r, s0, sigma, time):
+def options(init,steps_range,increment,K, r, s0, sigma, time):
     challa = []
-    for steps in range(1,steps_range,increment):
+    for steps in range(init,steps_range,increment):
         challa.append(b_tree(K, r, s0, sigma, time, steps))
 
-    plt.plot(range(int(steps_range/increment)),challa)
-
+    plt.figure(figsize=(8,6))
+    plt.grid()
+    plt.ylabel('Option Price(€)',fontsize=18)
+    plt.xlabel('Step',fontsize=18)
+    plt.plot(range(init,steps_range,increment),challa)
+    
     return challa
+
+#test:
+options(50,500,5,99,0.06,100,0.2,1)
