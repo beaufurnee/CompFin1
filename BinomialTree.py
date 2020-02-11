@@ -9,9 +9,19 @@ Code by Philippe Nicolau, Lotte Felius & Beau Furnée
 import math
 import matplotlib.pyplot as plt
 
+"""
 
+K = strikeprice
+r = risk-free rate
+S0 = value stock at time 0
+sigma = volatilaty
+time = maturity
+steps = stepsize
+c = {call option = 0, put option = 1}
 
-def b_tree(K, r, s0, sigma, time, steps):
+"""
+
+def b_tree(K, r, s0, sigma, time, steps, c = 0):
     """
     Function to approximate the price of an option
     """
@@ -32,7 +42,12 @@ def b_tree(K, r, s0, sigma, time, steps):
 
     # Turn stock value into option value
     for el in l_stocks:
-        l_option.append(max(0, el - K))
+
+        if c == 0:
+            l_option.append(max(0, el - K))
+        else:
+            l_option.append(max(0, K - el))
+
 
     # Move backwards through the tree calculating option prices
     while len(l_option) > 1:
@@ -55,5 +70,7 @@ def options(init,steps_range,increment,K, r, s0, sigma, time):
     
     return challa
 
+
 #test:
 options(50,500,5,99,0.06,100,0.2,1)
+
