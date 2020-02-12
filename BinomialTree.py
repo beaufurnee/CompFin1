@@ -29,7 +29,6 @@ def b_tree(K, r, s0, sigma, time, steps, c = 0):
 
     u = math.exp(sigma*math.sqrt(dt))
     d = math.exp(-sigma*math.sqrt(dt))
-
     p = (math.exp(r*dt) - d) / (u - d)
 
     # Lists to store the stock prices and option prices
@@ -52,7 +51,7 @@ def b_tree(K, r, s0, sigma, time, steps, c = 0):
     # Move backwards through the tree calculating option prices
     while len(l_option) > 1:
         for j in range(len(l_option) - 1):
-            l_option[j] = (p * l_option[j] + (1-p) * l_option[j+1]) * math.exp(-r * dt)
+            l_option[j] = (p * l_option[j] + (1-p) * l_option[j+1]) * math.exp(-]r * dt)
         l_option.pop()
 
     return l_option[0]
