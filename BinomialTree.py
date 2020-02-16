@@ -9,22 +9,23 @@ Code by Philippe Nicolau, Lotte Felius & Beau Furnée
 import math
 import matplotlib.pyplot as plt
 
-"""
-
-K = strikeprice
-r = risk-free rate
-S0 = value stock at time 0
-sigma = volatilaty
-time = maturity
-steps = stepsize
-c = {call option = 0, put option = 1}
-
-"""
 
 def b_tree(K, r, s0, sigma, time, steps, c = 0):
+    
     """
-    Function to approximate the price of an option
+    Estimate the price of an option
+    
+    Arguments
+    
+        K: strike price
+        r: interest rate (risk-free rate)
+        s0: stock price at t=0
+        sigma: volatility
+        time: maturity
+        steps: steps in the binomial tree
+        c: option type; call option if c == 0, else put option
     """
+    
     dt = time / steps
 
     u = math.exp(sigma*math.sqrt(dt))
@@ -51,12 +52,31 @@ def b_tree(K, r, s0, sigma, time, steps, c = 0):
     # Move backwards through the tree calculating option prices
     while len(l_option) > 1:
         for j in range(len(l_option) - 1):
-            l_option[j] = (p * l_option[j] + (1-p) * l_option[j+1]) * math.exp(-]r * dt)
+            l_option[j] = (p * l_option[j] + (1-p) * l_option[j+1]) 
+            l_option[j] = l_option[j] * math.exp(-r * dt)
         l_option.pop()
 
     return l_option[0]
 
+
 def options(init,steps_range,increment,K, r, s0, sigma, time):
+    
+    '''
+    Calculate option value for certain lengths of a binomial tree with plot to 
+    check convergence.
+    
+    Arguments
+        
+        init: initial number of steps taken in the binomial tree
+        steps_range: final number of steps in the binomial tree
+        increment: increment size taken from 'init' towards 'steps_range'
+        K: strike price
+        r: interest rate
+        s0: stock price at t=0
+        sigma: volatility
+        time: maturity
+    '''
+    
     challa = []
     for steps in range(init,steps_range,increment):
         challa.append(b_tree(K, r, s0, sigma, time, steps))
@@ -70,6 +90,6 @@ def options(init,steps_range,increment,K, r, s0, sigma, time):
     return challa
 
 
-#test:
-options(50,500,5,99,0.06,100,0.2,1)
+
+options(1000,6000,5,99,0.06,100,0.2,1)
 
