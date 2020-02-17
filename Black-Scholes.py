@@ -9,17 +9,14 @@ import math
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
 
-
-
-
 def integrand(z):
      return math.exp(-(1/2)*z**2)
 
 def std_nc_pdf(d):
     
-    pdf = (1/math.sqrt(2*math.pi))*quad(integrand, math.inf, d)
+    N = (1/math.sqrt(2*math.pi))*quad(integrand, -math.inf, d)[0]
     
-    return pdf
+    return N
 
 def black_scholes(t,st,k,T,sigma,r):
     
@@ -29,7 +26,7 @@ def black_scholes(t,st,k,T,sigma,r):
     d2 = d1 - sigma*math.sqrt(T-t)
     
     
-    opt_prices = std_nc_pdf(d1) * st
-    opt_prices = op_prices - std_nc_pdf(d2) * k * math.exp(-r*(T-t))
+    opt_price = std_nc_pdf(d1) * st
+    opt_price = opt_price - std_nc_pdf(d2) * k * math.exp(-r*(T-t))
         
-    return option_prices
+    return opt_price
