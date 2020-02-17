@@ -133,24 +133,40 @@ def hedge_per_volatility(initvol,vol_range,vol_increment,K, r, s0, time, steps):
         
     plt.figure(figsize=(8,6))
     plt.grid()
-    plt.ylabel('Delta',fontsize=18)
-    plt.xlabel('Volatility',fontsize=18)
+    plt.ylabel('Δ: Number of Shares',fontsize=18)
+    plt.xlabel('σ: Volatility (%)',fontsize=18)
     plt.plot(hedge_range,hedge_parameters)
 
 
-#options(1,10,1,99,0.06,100,0.2,1)
+def upstock(init,maxsteps,incrsteps,s0,sigma,time):
 
-steps = range(1,2000,2)
-topdogs = []
+    '''
+    Graph the value of up stock at maturity given different numbers of steps.
+
+    Arguments
     
-for stepstaken in steps:
-    
-    s0 = 100
-    sigma = 0.2
-    time = 1
-    dt = time / stepstaken
-    u = math.exp(sigma*math.sqrt(dt))
-    
-    topdogs.append(s0 * u**(stepstaken))
-    
+        init: initial number of steps considered
+        maxsteps: final value for the number of steps
+        incrsteps: increment in the number of steps before maturity after each 
+                   computation of the up stock price
+        s0: stock price at t=0
+        sigma: volatility
+        time: maturity
+
+    '''
+    steps = range(1,5000,50)
+    upstocks = []
+        
+    for stepstaken in steps:
+
+        dt = time / stepstaken
+        u = math.exp(sigma*math.sqrt(dt))
+        
+        upstocks.append(s0 * u**(stepstaken))
+        
+    plt.figure(figsize=(8,6))
+    plt.grid()
+    plt.ylabel('Number of Steps in the BT',fontsize=18)
+    plt.xlabel('Price of Up-Stock at Maturity',fontsize=18)    
+    plt.plot(steps,upstocks)
     
