@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Feb 17 11:22:32 2020
+
+@author: Lotte Felius, Beau Furnée, Philippe Nicolau
+"""
+
 import math
 
 
@@ -64,10 +72,16 @@ def full_tree(K, r, S0, sigma, time, steps, c = 0):
 
     # Calculate all option values and store them
 
-    for timestep in range(N, -1, -1):
-        for node in range(timestep):
-            tree[timestep-1][node][1] = math.exp((-r*dt))*((p*(tree[timestep][node][1])) + ((1-p)*(tree[timestep][min(node+1, timestep)][1])))
+    if c == 1:
+        for timestep in range(N, -1, -1):
+            for node in range(timestep):
+                tree[timestep-1][node][1] = max((K - tree[timestep-1][node][0]), (math.exp((-r*dt))*((p*(tree[timestep][node][1])) + ((1-p)*(tree[timestep][min(node+1, timestep)][1])))))
 
+    else:
+        for timestep in range(N, -1, -1):
+            for node in range(timestep):
+                tree[timestep - 1][node][1] = max((tree[timestep-1][node][0] - K), (math.exp((-r * dt)) * (
+                (p * (tree[timestep][node][1])) + ((1 - p) * (tree[timestep][min(node + 1, timestep)][1])))))
 
     # Just for representation
 
@@ -85,18 +99,27 @@ def full_tree(K, r, S0, sigma, time, steps, c = 0):
 
 # Example from slides (Binomial trees, slide 22)
 
+# sigma = 0.2
+# T = 12/12
+# N = 50
+# r = 0.06
+# s0 = 100
+# K = 99
+# put = 0
+
 sigma = 0.4
 T = 5/12
 N = 5
 r = 0.1
 s0 = 50
 K = 50
+put = 1
 
-tree = full_tree(K, r, s0, sigma, T, 5, 1)
+tree = full_tree(K, r, s0, sigma, T, N, put)
 
 print("")
 
 tis = 0
 for timestep in tree:
-    print(tis, timestep)
-    tis = tis + 1
+  print(tis, timestep)
+  tis = tis + 1
