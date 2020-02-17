@@ -7,4 +7,35 @@ Created on Mon Feb 17 11:22:32 2020
 """
 import math
 import matplotlib.pyplot as plt
+from scipy.integrate import quad
 
+
+
+
+def integrand(z):
+     return math.exp(-(1/2)*z**2)
+
+def std_nc_pdf(d):
+    
+    pdf = (1/math.sqrt(2*math.pi))*quad(integrand, math.inf, d)
+    
+    return pdf
+
+def black_scholes():
+    
+    t0 = 0 
+    T = 100 #Maturity
+    time = range(t0,T,1)
+    
+    for t in time:
+        
+        d1_factor = (math.log(S_TEE/k)+(r+(sigma**2/2))*(T-t))
+        
+        d1 = (1/sigma * math.sqrt(T-t)) * d1_factor
+        d2 = d1 - sigma*math.sqrt(T-t)
+        
+        
+        opt_prices = std_nc_pdf(d1) * S_TEE
+        opt_prices = op_prices - std_nc_pdf(d2) * k * math.exp(-r*(T-t))
+        
+    return option_prices
