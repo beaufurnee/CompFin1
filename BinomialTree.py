@@ -13,7 +13,8 @@ import matplotlib.pyplot as plt
 def b_tree(K, r, s0, sigma, time, steps, c = 0):
 
     """
-    Estimate the price of an option
+    Estimate the price of an option.
+    (Question I.1)
 
     Arguments
 
@@ -60,11 +61,50 @@ def b_tree(K, r, s0, sigma, time, steps, c = 0):
     return l_option[0], l_stocks
 
 
+def opt_vs_volatility(initvol,vol_max,vol_increment,K, r, s0, sigma, time, steps, c = 0):
+    
+    '''    
+    Evaluate option price for a range of values for sigma (the volatility) with plot.
+    (Question I.1)
+    
+    Arguments
+        
+        initvol: Initial value for sigma 
+        vol_max: Upper bound for sigma
+        vol_increment: Increment taken towards vol_max
+        K: strike price
+        r: interest rate
+        s0: stock price at t=0
+        sigma: volatility
+        time: maturity
+        steps: number of steps taken in the binomial tree
+    '''
+
+    options = []    
+
+    initvol = initvol*100
+    vol_max = vol_max*100
+    vol_increment = vol_increment*100
+    vol_range = range(int(initvol),int(vol_max),int(vol_increment))
+    
+    for sigma in vol_range:
+        option = b_tree(K, r, s0, sigma/100, time, steps, c = 0)[0]
+        options.append(option)
+
+    plt.figure(figsize=(8,6))
+    plt.grid()
+    plt.ylabel('Option Price(€)',fontsize=18)
+    plt.xlabel('σ: Volatility (%)',fontsize=18)
+    plt.plot(vol_range,options)
+
+
+
 def options(init,steps_range,increment,K, r, s0, sigma, time):
 
     '''
     Calculate option value for certain lengths of a binomial tree with plot to
     check convergence.
+    (Question I.2)
 
     Arguments
 
@@ -93,7 +133,7 @@ def options(init,steps_range,increment,K, r, s0, sigma, time):
     return optionprices
 
 
-def hedge_per_volatility(initvol,vol_range,vol_increment,K, r, s0, time, steps):
+def hedge_vs_volatility(initvol,vol_range,vol_increment,K, r, s0, time, steps):
     
     '''
     Loop over a range of values for sigma (the volatility) and check delta 
@@ -112,11 +152,13 @@ def hedge_per_volatility(initvol,vol_range,vol_increment,K, r, s0, time, steps):
         
     '''
     
+    hedge_parameters = []
+      
     initvol = initvol*100
     vol_range = vol_range*100
     vol_increment = vol_increment*100
     hedge_range = range(int(initvol),int(vol_range),int(vol_increment))
-    hedge_parameters = []
+    
     
     for sigma in hedge_range:
     
