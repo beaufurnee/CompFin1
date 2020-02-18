@@ -8,7 +8,37 @@ Code by Philippe Nicolau, Lotte Felius & Beau Furnée
 # Imports
 import math
 import matplotlib.pyplot as plt
+from scipy.integrate import quad
 
+
+#BLACK-SCHOLES##################
+################################
+
+def integrand(z):
+     return math.exp(-(1/2)*z**2)
+
+def N(d):
+    
+    N = (1/math.sqrt(2*math.pi))*quad(integrand, -math.inf, d)[0]
+    
+    return N
+
+def black_scholes(t,st,k,T,sigma,r):
+    
+    d1_factor = (math.log(st/k)+(r+(sigma**2/2))*(T-t))
+    
+    d1 = (1/sigma * math.sqrt(T-t)) * d1_factor
+    d2 = d1 - sigma*math.sqrt(T-t)
+    
+    delta = N(d1)
+    
+    opt_price = delta * st
+    opt_price = opt_price - N(d2) * k * math.exp(-r*(T-t))
+        
+    return delta, opt_price
+
+################################
+################################
 
 def b_tree(K, r, s0, sigma, time, steps, c = 0):
 
@@ -93,13 +123,15 @@ def opt_vs_volatility(initvol,vol_max,vol_increment,K, r, s0, sigma, time, steps
 
     plt.figure(figsize=(8,6))
     plt.grid()
-    plt.ylabel('Option Price(€)',fontsize=18)
-    plt.xlabel('σ: Volatility (%)',fontsize=18)
-    plt.plot(vol_range,options)
+    plt.ylabel('Option Price (€)',fontsize=20)
+    plt.xlabel('σ: Volatility (%)',fontsize=20)
+    plt.tick_params(axis='both', which='major', labelsize=15)
+    plt.plot(vol_range,options,color='green')
+    plt.savefig('Images/I-1_Opt_vsSigma',dpi=600)
 
 
 
-def options(init,steps_range,increment,K, r, s0, sigma, time):
+def options_forXsteps(init,steps_range,increment,K, r, s0, sigma, time):
 
     '''
     Calculate option value for certain lengths of a binomial tree with plot to
@@ -126,11 +158,13 @@ def options(init,steps_range,increment,K, r, s0, sigma, time):
 
     plt.figure(figsize=(8,6))
     plt.grid()
-    plt.ylabel('Option Price(€)',fontsize=18)
-    plt.xlabel('Step',fontsize=18)
-    plt.plot(steprange,optionprices)
-
-    return optionprices
+    plt.ylabel('Option Price (€)',fontsize=20)
+    plt.xlabel('Number of Steps in the BT',fontsize=20)
+    plt.tick_params(axis='both', which='major', labelsize=15)
+    plt.plot(steprange,optionprices,color='green')
+    plt.savefig('Images/I-2_Opt_vsSteps1750-10000',dpi=600)
+    
+    #return optionprices
 
 
 def hedge_vs_volatility(initvol,vol_range,vol_increment,K, r, s0, time, steps):
@@ -152,7 +186,8 @@ def hedge_vs_volatility(initvol,vol_range,vol_increment,K, r, s0, time, steps):
         
     '''
     
-    hedge_parameters = []
+    hedge_parameters_analytical = []
+    hedge_parameters_BT = []
       
     initvol = initvol*100
     vol_range = vol_range*100
@@ -170,14 +205,23 @@ def hedge_vs_volatility(initvol,vol_range,vol_increment,K, r, s0, time, steps):
         C_U = S_TU-K
         C_D = 0
         
-        delta = (C_U - C_D)/(S_TU-S_TD)
-        hedge_parameters.append(delta)
+        #to be fixed#
+        deltaA = black_scholes(0,s0,K,time,sigma,r)[0]
+        deltaB = (C_U - C_D)/(S_TU-S_TD)
+        #############
+        
+        hedge_parameters_analytical.append(deltaA)
+        hedge_parameters_BT.append(deltaB)
         
     plt.figure(figsize=(8,6))
     plt.grid()
-    plt.ylabel('Δ: Number of Shares',fontsize=18)
-    plt.xlabel('σ: Volatility (%)',fontsize=18)
-    plt.plot(hedge_range,hedge_parameters)
+    plt.ylabel('Δ: Number of Shares',fontsize=20)
+    plt.xlabel('σ: Volatility (%)',fontsize=20)
+    plt.tick_params(axis='both', which='major', labelsize=15)
+    plt.plot(hedge_range,hedge_parameters_analytical,label='BS')
+    plt.plot(hedge_range,hedge_parameters_BT,color='green',label='BT') 
+    plt.legend()
+    plt.savefig('Images/I-3_Del_vsSigma',dpi=600)
 
 
 def upstock(init,maxsteps,incrsteps,s0,sigma,time):
