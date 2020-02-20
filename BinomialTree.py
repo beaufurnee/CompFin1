@@ -27,7 +27,7 @@ def black_scholes(t,st,k,T,sigma,r):
     
     d1_factor = (math.log(st/k)+(r+(sigma**2/2))*(T-t))
     
-    d1 = (1/sigma * math.sqrt(T-t)) * d1_factor
+    d1 = (1/(sigma * math.sqrt(T-t))) * d1_factor
     d2 = d1 - sigma*math.sqrt(T-t)
     
     delta = N(d1)
