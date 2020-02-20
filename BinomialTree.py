@@ -27,7 +27,7 @@ def black_scholes(t,st,k,T,sigma,r):
 #black_scholes(0,100,99,1,0.2,0.06)
     
     d1_factor = (math.log(st/k)+(r+(sigma**2/2))*(T-t))
-    d1 = (1/sigma * math.sqrt(T-t)) * d1_factor
+    d1 = (1/(sigma * math.sqrt(T-t))) * d1_factor
     d2 = d1 - sigma*math.sqrt(T-t)
     
     delta = N(d1)
@@ -58,7 +58,7 @@ def b_tree(K, r, s0, sigma, time, steps, c = 0):
         c: option type; call option if c == 0, else put option
     """
 
-    dt = time / steps
+    dt = time / (steps)
 
     u = math.exp(sigma*math.sqrt(dt))
     d = math.exp(-sigma*math.sqrt(dt))
@@ -68,10 +68,6 @@ def b_tree(K, r, s0, sigma, time, steps, c = 0):
     l_stocks = []
     l_option = []
     dt_options = []
-
-    #calculate delta
-    #delta =  (-)/(s0 * u - s0 * d)
-  
 
     # Calculate the stock values at expiration
     for i in range(steps+1):
@@ -96,9 +92,10 @@ def b_tree(K, r, s0, sigma, time, steps, c = 0):
         
         l_option.pop()
         
-        if len(l_option) == 3:
-                 dt_options.append(l_option[j-1])
-                 dt_options.append(l_option[j])   
+        if len(l_option) == 2:
+            dt_options.append(l_option[j-1])
+            dt_options.append(l_option[j]) 
+                 
 
     return dt_options, l_option[0], l_stocks
 
@@ -200,6 +197,7 @@ def hedge_vs_volatility(initvol,vol_range,vol_increment,K, r, s0, time, steps):
         
     '''
     
+    
     hedge_parameters_analytical = []
     hedge_parameters_BT = []
       
@@ -211,23 +209,24 @@ def hedge_vs_volatility(initvol,vol_range,vol_increment,K, r, s0, time, steps):
     
     for sigma in hedge_range:
     
+        dt = time / (steps)
+            
+        u = math.exp((sigma/100)*math.sqrt(dt))
+        d = math.exp((-sigma/100)*math.sqrt(dt))
         
-        #Stock Prices at Maturity
-        S_TU = b_tree(K, r, s0, sigma/100, time, 1)[1][0]
-        S_TD = b_tree(K, r, s0, sigma/100, time, 1)[1][steps]
         #Option Prices at Maturity
-        C_U = S_TU-K
-        C_D = 0
+        C_U = b_tree(K, r, s0, sigma/100, time, steps, c=0)[0][0]
+        C_D = b_tree(K, r, s0, sigma/100, time, steps, c=0)[0][1]
         
         #to be fixed#
-        deltaA = black_scholes(1,s0,K,time,sigma,r)[0]
-        deltaB = (C_U - C_D)/(S_TU-S_TD)
+        deltaA = black_scholes(1/steps,s0,K,time,sigma/100,r)[0]
+        deltaB = (C_U - C_D)/(s0*u-s0*d)
         #############
         
         hedge_parameters_analytical.append(deltaA)
         hedge_parameters_BT.append(deltaB)
         
-    plt.figure(figsize=(8,6))
+    plt.figure(figsize=(8,6))   
     plt.grid()
     plt.ylabel('Δ: Number of Shares',fontsize=20)
     plt.xlabel('σ: Volatility (%)',fontsize=20)
