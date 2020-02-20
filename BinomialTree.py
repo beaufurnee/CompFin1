@@ -41,6 +41,7 @@ def black_scholes(t,st,k,T,sigma,r):
 ##################################
 
 def b_tree(K, r, s0, sigma, time, steps, c = 0):
+#b_tree(99,0.06,100,0.2,1,50,c = 0)
 
     """
     Estimate the price of an option.
@@ -66,9 +67,14 @@ def b_tree(K, r, s0, sigma, time, steps, c = 0):
     # Lists to store the stock prices and option prices
     l_stocks = []
     l_option = []
+    dt_options = []
+
+    #calculate delta
+    #delta =  (-)/(s0 * u - s0 * d)
+  
 
     # Calculate the stock values at expiration
-    for i in range(steps+1)
+    for i in range(steps+1):
         l_stocks.append(s0 * u**((steps-i) - i))
     
 
@@ -87,9 +93,14 @@ def b_tree(K, r, s0, sigma, time, steps, c = 0):
 
             l_option[j] = (p * l_option[j] + (1-p) * l_option[j+1])
             l_option[j] = l_option[j] * math.exp(-r * dt)
+        
         l_option.pop()
+        
+        if len(l_option) == 3:
+                 dt_options.append(l_option[j-1])
+                 dt_options.append(l_option[j])   
 
-    return l_option[0], l_stocks
+    return dt_options, l_option[0], l_stocks
 
 
 def opt_vs_volatility(initvol,vol_max,vol_increment,K, r, s0, sigma, time, steps, c = 0):
