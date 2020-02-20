@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 from scipy.integrate import quad
 
 
-#BLACK-SCHOLES##################
-################################
+#BLACK-SCHOLES####################
+##################################
 
 def integrand(z):
      return math.exp(-(1/2)*z**2)
@@ -24,9 +24,9 @@ def N(d):
     return N
 
 def black_scholes(t,st,k,T,sigma,r):
+#black_scholes(0,100,99,1,0.2,0.06)
     
     d1_factor = (math.log(st/k)+(r+(sigma**2/2))*(T-t))
-    
     d1 = (1/sigma * math.sqrt(T-t)) * d1_factor
     d2 = d1 - sigma*math.sqrt(T-t)
     
@@ -37,8 +37,8 @@ def black_scholes(t,st,k,T,sigma,r):
         
     return delta, opt_price
 
-################################
-################################
+##################################
+##################################
 
 def b_tree(K, r, s0, sigma, time, steps, c = 0):
 
@@ -68,7 +68,7 @@ def b_tree(K, r, s0, sigma, time, steps, c = 0):
     l_option = []
 
     # Calculate the stock values at expiration
-    for i in range(steps+1):
+    for i in range(steps+1)
         l_stocks.append(s0 * u**((steps-i) - i))
     
 
@@ -169,6 +169,8 @@ def options_forXsteps(init,steps_range,increment,K, r, s0, sigma, time):
 
 
 def hedge_vs_volatility(initvol,vol_range,vol_increment,K, r, s0, time, steps):
+#hedge_vs_volatility(0.01,2,0.01,99,0.06,100,1,50)
+    
     
     '''
     Loop over a range of values for sigma (the volatility) and check delta 
@@ -200,14 +202,14 @@ def hedge_vs_volatility(initvol,vol_range,vol_increment,K, r, s0, time, steps):
     
         
         #Stock Prices at Maturity
-        S_TU = b_tree(K, r, s0, sigma/100, time, steps)[1][0]
-        S_TD = b_tree(K, r, s0, sigma/100, time, steps)[1][steps]
+        S_TU = b_tree(K, r, s0, sigma/100, time, 1)[1][0]
+        S_TD = b_tree(K, r, s0, sigma/100, time, 1)[1][steps]
         #Option Prices at Maturity
         C_U = S_TU-K
         C_D = 0
         
         #to be fixed#
-        deltaA = black_scholes(0,s0,K,time,sigma,r)[0]
+        deltaA = black_scholes(1,s0,K,time,sigma,r)[0]
         deltaB = (C_U - C_D)/(S_TU-S_TD)
         #############
         
