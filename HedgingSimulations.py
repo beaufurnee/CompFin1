@@ -15,11 +15,14 @@ import numpy as np
 
 def stock_price_process(s0, sigma, time, steps, r, runs, plot, k):
     """
-    To get a graph, execute:
+    To get a histogram, execute:
         outs = []
-        for i in range(1000):
+        for i in range(100):
             outs.append(stock_price_process(100, 0.2, 1, 365, 0.06, 1, False, 99))
-        n, bins, patches = plt.hist(x=outs, bins='auto', range=(-1, 1))
+        n, bins, patches = plt.hist(x=outs, bins='auto', range=(-2, 2))
+        mu = round(sum(outs) / len(outs), 4)
+        std = round(stdev(outs), 4)
+        plt.axvline(mu, linestyle='dashed', linewidth=1)
     """
     
     dt = time / steps
@@ -137,3 +140,21 @@ def plot_histogram(samples):
     plt.ylabel('Frequency', size=15)
     plt.title('Distribution of Stock Price Process runs', size=15)
     plt.text(0, 81000, r'$\mu=$ ' + str(mu) + '\n$ \sigma=$' + str(std), size=15)
+    
+def plot_means(list_of_frequencies, list_of_reps):
+    
+    for freq in list_of_frequencies:
+        mus = []
+        for reps in list_of_reps:
+            outs = []
+            for j in range(reps):
+                outs.append(stock_price_process(100, 0.2, 1, freq, 0.06, 1, False, 99))
+            #n, bins, patches = plt.hist(x=outs, bins='auto', range=(-2, 2))
+            mu = round(sum(outs) / len(outs), 4)
+            mus.append(mu)
+            std = round(stdev(outs), 4)
+        plt.plot(list_of_reps, mus)
+        plt.text(list_of_reps[-1]*1.01, mu, str(freq), size=15)
+            
+    plt.show()
+    
