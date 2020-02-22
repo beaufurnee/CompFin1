@@ -9,6 +9,7 @@ Code by Philippe Nicolau, Lotte Felius & Beau Furnée
 import math
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
+import numpy as np
 
 
 #BLACK-SCHOLES####################
@@ -37,6 +38,9 @@ def black_scholes(t,st,k,T,sigma,r):
     opt_price = opt_price - N(d2) * k * math.exp(-r*(T-t))
         
     return delta, opt_price
+
+
+
 
 def b_tree(K, r, s0, sigma, time, steps, c = 0):
 #b_tree(99,0.06,100,0.2,1,50,c = 0)
@@ -98,10 +102,42 @@ def b_tree(K, r, s0, sigma, time, steps, c = 0):
     return dt_options, l_option[0], l_stocks
 
 
-def opt_vs_volatility(initvol,vol_max,vol_increment,K, r, s0, sigma, time, steps, c = 0):
+def an_opt_vs_vol(initvol,vol_max,vol_increment,t,st,k,T,r):
+    
+    options = []    
+
+    initvol = initvol*100
+    vol_max = vol_max*100
+    vol_increment = vol_increment*100
+    vol_range = range(int(initvol),int(vol_max),int(vol_increment))
+    
+    for sigma in vol_range:
+        sigma = sigma/100
+        d1_factor = (math.log(st/k)+(r+(sigma**2/2))*(T-t))
+        d1 = (1/(sigma * math.sqrt(T-t))) * d1_factor
+        d2 = d1 - sigma*math.sqrt(T-t)
+        opt_price = N(d1) * st
+        opt_price = opt_price - N(d2) * k * math.exp(-r*(T-t))
+        options.append(opt_price)
+    
+    plt.figure(figsize=(9,6))
+    plt.grid()
+    plt.ylabel('Option Price (€)',fontsize=20)
+    plt.xlabel('σ: Volatility (%)',fontsize=20)
+    plt.tick_params(axis='both', which='major', labelsize=15)
+    plt.plot(vol_range,options,linewidth = '2.5')
+    plt.fill_between(vol_range,options, facecolor = 'Blue', alpha = 0.3)
+    plt.savefig('Images/I-1_An_Opt_vsSigma',dpi=600)
+
+        
+    return opt_price    
+
+
+def opt_vs_volatility(initvol,vol_max,vol_increment,K, r, s0, t ,T, steps, c = 0):
     
     '''    
-    Evaluate option price for a range of values for sigma (the volatility) with plot.
+    Evaluate option price for a range of values for sigma (the volatility)
+    with plot.
     (Question I.1)
     
     Arguments
@@ -117,7 +153,8 @@ def opt_vs_volatility(initvol,vol_max,vol_increment,K, r, s0, sigma, time, steps
         steps: number of steps taken in the binomial tree
     '''
 
-    options = []    
+    options = []   
+    an_options = []
 
     initvol = initvol*100
     vol_max = vol_max*100
@@ -125,18 +162,73 @@ def opt_vs_volatility(initvol,vol_max,vol_increment,K, r, s0, sigma, time, steps
     vol_range = range(int(initvol),int(vol_max),int(vol_increment))
     
     for sigma in vol_range:
-        option = b_tree(K, r, s0, sigma/100, time, steps, c = 0)[0]
+        sigma = sigma/100
+        
+        #Black-Scholes
+        d1_factor = (math.log(s0/K)+(r+(sigma**2/2))*(T-t))
+        d1 = (1/(sigma * math.sqrt(T-t))) * d1_factor
+        d2 = d1 - sigma*math.sqrt(T-t)
+        opt_price = N(d1) * s0
+        opt_price = opt_price - N(d2) * K * math.exp(-r*(T-t))
+        an_options.append(opt_price)
+
+        #Binomial tree
+        option = b_tree(K, r, s0, sigma, T, steps, c = 0)[1]
         options.append(option)
 
-    plt.figure(figsize=(8,6))
+    plt.figure(figsize=(9,6))
     plt.grid()
     plt.ylabel('Option Price (€)',fontsize=20)
     plt.xlabel('σ: Volatility (%)',fontsize=20)
     plt.tick_params(axis='both', which='major', labelsize=15)
-    plt.plot(vol_range,options,color='green')
-    plt.savefig('Images/I-1_Opt_vsSigma',dpi=600)
+    plt.plot(vol_range,options,color='green',linewidth = '2.5')
+    plt.plot(vol_range,an_options,linewidth = '2.5')
+    plt.fill_between(vol_range,options, facecolor = 'Green', alpha = 0.3)
+    #plt.savefig('Images/I-1_Opt_vsSigma_An',dpi=600)
 
+    plt.figure(figsize=(9,6))
+    plt.grid()
+    plt.ylabel('Difference (%)',fontsize=20)
+    plt.xlabel('σ: Volatility (%)',fontsize=20)
+    plt.tick_params(axis='both', which='major', labelsize=15)
+    plt.plot(vol_range,[options[i]-an_options[i] for i in range(len(options))],'r',linewidth = 2.5)
+    plt.savefig('Images/I-1_OP_vsSigma_Diff')
+    
+# =============================================================================
+#     plt.figure(figsize=(9,6))
+#     plt.grid()
+#     plt.ylabel('Difference (%)',fontsize=20)
+#     plt.xlabel('σ: Volatility (%)',fontsize=20)
+#     plt.tick_params(axis='both', which='major', labelsize=15)
+#     plt.plot(vol_range,[options[i]-an_options[i] for i in range(len(options))],'r',linewidth = 2.5)
+#     plt.plot(vol_range,options,color='green',linewidth = '2.5')
+#     plt.plot(vol_range,an_options,linewidth = '2.5')
+#     plt.fill_between(vol_range,options, facecolor = 'Green', alpha = 0.3)
+# =============================================================================
+    
+ 
+    
+    fig, ax1 = plt.subplots(figsize=(9,6))
 
+    color = 'tab:blue'
+    ax1.set_xlabel('σ: Volatility (%)', fontsize=20)
+    ax1.set_ylabel('Option Price (€)', color=color, fontsize=20)  # we already handled the x-label with ax1
+    ax1.plot(vol_range,options,color='green',linewidth = '2.5')
+    ax1.plot(vol_range,an_options,linewidth = '2.5')
+    ax1.fill_between(vol_range,options, facecolor = 'Green', alpha = 0.3)
+    ax1.tick_params(axis='y', labelcolor=color, which='major', labelsize=15)
+    ax1.grid()
+    
+    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+    
+    color = 'tab:red'
+    ax2.set_ylabel('Difference between Methods(€)', color=color,fontsize=20)
+    ax2.plot(vol_range,[options[i]-an_options[i] for i in range(len(options))],'r',linewidth = 2.5, alpha = 0.75)
+    ax2.grid()
+    ax2.tick_params(axis='y', labelcolor=color, which='major', labelsize=15)
+    print(options[-1]-an_options[-1])
+    fig.tight_layout()  
+    plt.savefig('Images/Full_I1',dpi=600)
 
 def options_forXsteps(init,steps_range,increment,K, r, s0, sigma, time):
 
