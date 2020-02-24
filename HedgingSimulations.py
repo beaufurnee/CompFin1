@@ -13,7 +13,7 @@ import random
 from statistics import stdev
 import numpy as np
 
-def stock_price_process(s0, sigma, time, steps, r, runs, plot, k):
+def stock_price_process(s0, sigma, time, steps, r, runs, sigma_stock, k):
     """
     To get a histogram, execute:
         outs = []
@@ -26,58 +26,37 @@ def stock_price_process(s0, sigma, time, steps, r, runs, plot, k):
     """
     
     dt = time / steps
-    u = math.exp(sigma*math.sqrt(dt))
-    d = math.exp(-sigma*math.sqrt(dt))
+    u = math.exp(sigma_stock*math.sqrt(dt))
+    d = math.exp(-sigma_stock*math.sqrt(dt))
     p = (math.exp(r*dt) - d) / (u - d)
       
-    # if runs > 1, running multiple simulations to plot multiple paths
-    for i in range(1):
-        t = 0
-        s = s0
+
+    t = 0
+    s = s0
+
+    list_t = [t]
+    list_s = [s]
     
-        list_t = [t]
-        list_s = [s]
-        
-        # Portfolio
-        portfolio = 0
-        debt = 0
-        
-        delta = black_scholes(t,s,k,time,sigma,r)[0]
-        
-        # Selling initial option
-        debt += black_scholes(t,s,k,time,sigma,r)[1]
-        
-        # Hedging
-        portfolio += delta
-        debt -= delta * s
-        
-        port_list = [portfolio]
-        
-        # Storing loans to calculate total amount due at maturity
-        debt_list = [debt]
-        
-        # Path plotting per simulation UP UNTILL MATURITY
-        for i in range(steps - 1):           
-            if random.uniform(0, 1) < p:
-                s = s * u
-            else:
-                s = s * d
-                
-            t += dt
-            
-            if plot == True:
-                list_t.append(t)
-                list_s.append(s)
-                
-            # Recalculating delta
-            delta = black_scholes(t,s,k,time,sigma,r)[0]
-            
-            # Buying or selling stocks based on delta, but first loaning the necessary money
-            debt_list.append(-(delta - portfolio) * s)                
-            portfolio += (delta - portfolio)
-            port_list.append(portfolio)
-        
-        # Last price change before settling        
+    # Portfolio
+    portfolio = 0
+    debt = 0
+    
+    delta = black_scholes(t,s,k,time,sigma,r)[0]
+    
+    # Selling initial option
+    debt += black_scholes(t,s,k,time,sigma,r)[1]
+    
+    # Hedging
+    portfolio += delta
+    debt -= delta * s
+    
+    port_list = [portfolio]
+    
+    # Storing loans to calculate total amount due at maturity
+    debt_list = [debt]
+    
+    # Path plotting per simulation UP UNTILL MATURITY
+    for i in range(steps - 1):           
         if random.uniform(0, 1) < p:
             s = s * u
         else:
@@ -85,43 +64,38 @@ def stock_price_process(s0, sigma, time, steps, r, runs, plot, k):
             
         t += dt
             
-        end_profit = 0
-        total_debt = 0
+        # Recalculating delta
+        delta = black_scholes(t,s,k,time,sigma,r)[0]
         
-        # Selling stock to caller or selling portfolio to market            
-        if s > k:
-            # Buying remaining stocks to be able to sell to caller
-            end_profit -= (1 - portfolio) * s
-            end_profit += k
-        else:
-            end_profit += portfolio * s
+        # Buying or selling stocks based on delta, but first loaning the necessary money
+        debt_list.append(-(delta - portfolio) * s)                
+        portfolio += (delta - portfolio)
+        port_list.append(portfolio)
         
-        # Paying debt including interest
-        for loan in debt_list:
-            total_debt += loan * math.exp(r * ((steps - debt_list.index(loan)) * dt))
+    # Last price change before settling        
+    if random.uniform(0, 1) < p:
+        s = s * u
+    else:
+        s = s * d
         
-        end_profit += total_debt      
+    t += dt
         
-        if plot == True:
-            fig, ax1 = plt.subplots()
-
-            color = 'tab:red'
-            ax1.set_xlabel('time (days)')
-            ax1.set_ylabel('stock', color=color)
-            ax1.plot(list_t, list_s, label='debt', color=color)
-            ax1.tick_params(axis='y', labelcolor=color)
-            
-            ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-            
-            color = 'tab:blue'
-            ax2.set_ylabel('debt_list', color=color)  # we already handled the x-label with ax1
-            ax2.plot(list_t, debt_list, label='debt', color=color)
-            ax2.tick_params(axis='y', labelcolor=color)
-            
-            fig.tight_layout()  # otherwise the right y-label is slightly clipped
-
-    if plot == True:
-        plt.show()
+    end_profit = 0
+    total_debt = 0
+    
+    # Selling stock to caller or selling portfolio to market            
+    if s > k:
+        # Buying remaining stocks to be able to sell to caller
+        end_profit -= (1 - portfolio) * s
+        end_profit += k
+    else:
+        end_profit += portfolio * s
+    
+    # Paying debt including interest
+    for loan in debt_list:
+        total_debt += loan * math.exp(r * ((steps - debt_list.index(loan)) * dt))
+    
+    end_profit += total_debt      
         
     return end_profit
     
@@ -158,3 +132,38 @@ def plot_means(list_of_frequencies, list_of_reps):
             
     plt.show()
     
+    
+    
+def diff_volas(stock_sigmas):
+    mus = []
+    stds = []
+    
+    for s_sig in stock_sigmas:
+        outs = []
+        print(s_sig)
+        for i in range(2000):
+            outs.append(stock_price_process(100, 0.2, 1, 365, 0.06, 1, s_sig, 99))
+        mu = round(sum(outs) / len(outs), 4)
+        std = round(stdev(outs), 4)
+        
+        mus.append(mu)
+        stds.append(std)
+            
+    return(mus, stds)
+    """
+    outs = []
+plt.figure(figsize=(9,6))
+plt.grid()
+plt.ylabel('Frequency (#)',fontsize=20)
+plt.xlabel('Profit (€)',fontsize=20)
+plt.tick_params(axis='both', which='major', labelsize=15)
+for i in range(20000):
+    outs.append(stock_price_process(100, 0.2, 1, 365, 0.06, 1, False, 99))
+n, bins, patches = plt.hist(x=outs, bins=50, range=(-2, 2))
+mu = round(sum(outs) / len(outs), 4)
+std = round(stdev(outs), 4)
+plt.axvline(mu, linestyle='dashed', linewidth=1)
+plt.text(0.5, 4000, r'$\mu=$ ' + str(mu) + '\n$ \sigma=$' + str(std), size=15)
+plt.title('Daily', fontsize=25)
+plt.savefig('Images/II-days')
+"""
