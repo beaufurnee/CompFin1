@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import quad
 import numpy as np
 import time
+from scipy.stats import norm
 
 
 #BLACK-SCHOLES####################
@@ -40,6 +41,21 @@ def black_scholes(t,st,k,T,sigma,r):
         
     return delta, opt_price
 
+
+#using norm.cdf(x) instead of N(x)
+def black_scholy(t,st,k,T,sigma,r):
+    
+    d1_factor = (math.log(st/k)+(r+(sigma**2/2))*(T-t))
+
+    d1 = (1/(sigma * math.sqrt(T-t))) * d1_factor
+    d2 = d1 - sigma*math.sqrt(T-t)
+    
+    delta = norm.cdf(d1)
+    
+    opt_price = delta * st
+    opt_price = opt_price - norm.cdf(d2) * k * math.exp(-r*(T-t))
+        
+    return opt_price
 
 
 
