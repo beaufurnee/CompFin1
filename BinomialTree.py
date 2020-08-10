@@ -10,6 +10,8 @@ import math
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
 import numpy as np
+import time
+from scipy.stats import norm
 
 
 #BLACK-SCHOLES####################
@@ -39,6 +41,21 @@ def black_scholes(t,st,k,T,sigma,r):
         
     return delta, opt_price
 
+
+#using norm.cdf(x) instead of N(x)
+def black_scholy(t,st,k,T,sigma,r):
+    
+    d1_factor = (math.log(st/k)+(r+(sigma**2/2))*(T-t))
+
+    d1 = (1/(sigma * math.sqrt(T-t))) * d1_factor
+    d2 = d1 - sigma*math.sqrt(T-t)
+    
+    delta = norm.cdf(d1)
+    
+    opt_price = delta * st
+    opt_price = opt_price - norm.cdf(d2) * k * math.exp(-r*(T-t))
+        
+    return opt_price
 
 
 
@@ -176,23 +193,25 @@ def opt_vs_volatility(initvol,vol_max,vol_increment,K, r, s0, t ,T, steps, c = 0
         option = b_tree(K, r, s0, sigma, T, steps, c = 0)[1]
         options.append(option)
 
-    plt.figure(figsize=(9,6))
-    plt.grid()
-    plt.ylabel('Option Price (€)',fontsize=20)
-    plt.xlabel('σ: Volatility (%)',fontsize=20)
-    plt.tick_params(axis='both', which='major', labelsize=15)
-    plt.plot(vol_range,options,color='green',linewidth = '2.5')
-    plt.plot(vol_range,an_options,linewidth = '2.5')
-    plt.fill_between(vol_range,options, facecolor = 'Green', alpha = 0.3)
-    #plt.savefig('Images/I-1_Opt_vsSigma_An',dpi=600)
-
-    plt.figure(figsize=(9,6))
-    plt.grid()
-    plt.ylabel('Difference (%)',fontsize=20)
-    plt.xlabel('σ: Volatility (%)',fontsize=20)
-    plt.tick_params(axis='both', which='major', labelsize=15)
-    plt.plot(vol_range,[options[i]-an_options[i] for i in range(len(options))],'r',linewidth = 2.5)
-    plt.savefig('Images/I-1_OP_vsSigma_Diff')
+# =============================================================================
+#     plt.figure(figsize=(9,6))
+#     plt.grid()
+#     plt.ylabel('Option Price (€)',fontsize=20)
+#     plt.xlabel('σ: Volatility (%)',fontsize=20)
+#     plt.tick_params(axis='both', which='major', labelsize=15)
+#     plt.plot(vol_range,options,color='green',linewidth = '2.5')
+#     plt.plot(vol_range,an_options,linewidth = '2.5')
+#     plt.fill_between(vol_range,options, facecolor = 'Green', alpha = 0.3)
+#     #plt.savefig('Images/I-1_Opt_vsSigma_An',dpi=600)
+# 
+#     plt.figure(figsize=(9,6))
+#     plt.grid()
+#     plt.ylabel('Difference (%)',fontsize=20)
+#     plt.xlabel('σ: Volatility (%)',fontsize=20)
+#     plt.tick_params(axis='both', which='major', labelsize=15)
+#     plt.plot(vol_range,[options[i]-an_options[i] for i in range(len(options))],'r',linewidth = 2.5)
+#     plt.savefig('Images/I-1_OP_vsSigma_Diff')
+# =============================================================================
     
 # =============================================================================
 #     plt.figure(figsize=(9,6))
@@ -208,29 +227,10 @@ def opt_vs_volatility(initvol,vol_max,vol_increment,K, r, s0, t ,T, steps, c = 0
     
  
     
-    fig, ax1 = plt.subplots(figsize=(9,6))
-
-    color = 'tab:blue'
-    ax1.set_xlabel('σ: Volatility (%)', fontsize=20)
-    ax1.set_ylabel('Option Price (€)', color=color, fontsize=20)  # we already handled the x-label with ax1
-    ax1.plot(vol_range,options,color='green',linewidth = '2.5')
-    ax1.plot(vol_range,an_options,linewidth = '2.5')
-    ax1.fill_between(vol_range,options, facecolor = 'Green', alpha = 0.3)
-    ax1.tick_params(axis='y', labelcolor=color, which='major', labelsize=15)
-    ax1.grid()
     
-    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
     
-    color = 'tab:red'
-    ax2.set_ylabel('Difference between Methods(€)', color=color,fontsize=20)
-    ax2.plot(vol_range,[options[i]-an_options[i] for i in range(len(options))],'r',linewidth = 2.5, alpha = 0.75)
-    ax2.grid()
-    ax2.tick_params(axis='y', labelcolor=color, which='major', labelsize=15)
-    print(options[-1]-an_options[-1])
-    fig.tight_layout()  
-    plt.savefig('Images/Full_I1',dpi=600)
 
-def options_forXsteps(init,steps_range,increment,K, r, s0, sigma, time):
+def options_forXsteps(i,init,steps_range,increment,K, r, s0, sigma, t):
 
     '''
     Calculate option value for certain lengths of a binomial tree with plot to
@@ -248,20 +248,37 @@ def options_forXsteps(init,steps_range,increment,K, r, s0, sigma, time):
         sigma: volatility
         time: maturity
     '''
-    
-    optionprices = []
-    steprange = range(init,steps_range,increment)
-    
-    for steps in steprange:
-        optionprices.append(b_tree(K, r, s0, sigma, time, steps)[0])
-
     plt.figure(figsize=(8,6))
     plt.grid()
-    plt.ylabel('Option Price (€)',fontsize=20)
-    plt.xlabel('Number of Steps in the BT',fontsize=20)
-    plt.tick_params(axis='both', which='major', labelsize=15)
-    plt.plot(steprange,optionprices,color='green')
-    plt.savefig('Images/I-2_Opt_vsSteps1750-10000',dpi=600)
+    
+    
+    for boi in range(i): 
+        times = []
+        optionprices = []
+        steprange = range(init,steps_range,increment)
+        
+        for steps in steprange:
+            start_time = time.time()
+            optionprices.append(b_tree(K, r, s0, sigma, t, steps)[1])
+            times.append(time.time()-start_time)
+    
+    # =============================================================================
+    #     plt.figure(figsize=(8,6))
+    #     plt.grid()
+    #     plt.ylabel('Option Price (€)',fontsize=20)
+    #     plt.xlabel('Number of Steps in the BT',fontsize=20)
+    #     plt.tick_params(axis='both', which='major', labelsize=15)
+    #     plt.plot(steprange,optionprices,color='green')
+    #     plt.savefig('Images/I-2_Opt_vsSteps50-5000',dpi=600)
+    # =============================================================================
+        
+        
+        plt.ylabel('Computation Time (s)',fontsize=20)
+        plt.xlabel('Number of Steps in the BT',fontsize=20)
+        plt.tick_params(axis='both', which='major', labelsize=15)
+        plt.plot(steprange,times)
+        plt.savefig('Images/Complexity',dpi=600)
+    
     
     #return optionprices
 
@@ -316,46 +333,64 @@ def hedge_vs_volatility(initvol,vol_range,vol_increment,K, r, s0, time, steps):
         hedge_parameters_analytical.append(deltaA)
         hedge_parameters_BT.append(deltaB)
         
-    plt.figure(figsize=(8,6))   
-    plt.grid()
-    plt.ylabel('Δ: Number of Shares',fontsize=20)
-    plt.xlabel('σ: Volatility (%)',fontsize=20)
-    plt.tick_params(axis='both', which='major', labelsize=15)
-    plt.plot(hedge_range,hedge_parameters_analytical,label='BS')
-    plt.plot(hedge_range,hedge_parameters_BT,color='green',label='BT') 
-    plt.legend()
-    plt.savefig('Images/I-3_Del_vsSigma',dpi=600)
+        if sigma==20:
+            print('an:',deltaA,'bt:',deltaB, deltaB-deltaA, (deltaB-deltaA)*100/deltaB)
+        
 
+    fig, ax1 = plt.subplots(figsize=(8,6))
 
-def upstock(init,maxsteps,incrsteps,s0,sigma,time):
-
-    '''
-    Graph the value of up stock at maturity given different numbers of steps.
-
-    Arguments
+    color = 'tab:blue'
+    ax1.set_xlabel('σ: Volatility (%)', fontsize=20)
+    ax1.set_ylabel('Δ: Number of Shares',color=color,fontsize=20) 
+    ax1.tick_params(axis='both', which='major', labelsize=15)# we already handled the x-label with ax1
+    ax1.plot(hedge_range,hedge_parameters_analytical,label='BS')
+    ax1.plot(hedge_range,hedge_parameters_BT,color='green',label='BT')
+    ax1.tick_params(axis='y', labelcolor=color, which='major', labelsize=15)
+    ax1.grid()
     
-        init: initial number of steps considered
-        maxsteps: final value for the number of steps
-        incrsteps: increment in the number of steps before maturity after each 
-                   computation of the up stock price
-        s0: stock price at t=0
-        sigma: volatility
-        time: maturity
-
-    '''
-    steps = range(1,5000,50)
-    upstocks = []
-        
-    for stepstaken in steps:
-
-        dt = time / stepstaken
-        u = math.exp(sigma*math.sqrt(dt))
-        
-        upstocks.append(s0 * u**(stepstaken))
-        
-    plt.figure(figsize=(8,6))
-    plt.grid()
-    plt.ylabel('Number of Steps in the BT',fontsize=18)
-    plt.xlabel('Price of Up-Stock at Maturity',fontsize=18)    
-    plt.plot(steps,upstocks)
+    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
     
+    color = 'tab:red'
+    ax2.set_ylabel('relative error between methods (%)', color=color,fontsize=20)
+    ax2.plot(hedge_range,[(hedge_parameters_BT[i]-hedge_parameters_analytical[i])*100/hedge_parameters_BT[i] for i in range(len(hedge_parameters_BT))],color='red')
+    ax2.grid()
+    ax2.tick_params(axis='y', labelcolor=color, which='major', labelsize=15)
+    print((hedge_parameters_BT[-1]-hedge_parameters_analytical[-1])*100/hedge_parameters_BT[-1])
+    fig.tight_layout()  
+    plt.savefig('Images/Q3',dpi=600)
+    print(hedge_parameters_BT[-1], hedge_parameters_analytical[-1])
+# =============================================================================
+# def upstock(init,maxsteps,incrsteps,s0,sigma,time):
+# 
+#     '''
+#     Graph the value of up stock at maturity given different numbers of steps.
+# 
+#     Arguments
+#     
+#         init: initial number of steps considered
+#         maxsteps: final value for the number of steps
+#         incrsteps: increment in the number of steps before maturity after each 
+#                    computation of the up stock price
+#         s0: stock price at t=0
+#         sigma: volatility
+#         time: maturity
+# 
+#     '''
+#     steps = range(1,5000,50)
+#     upstocks = []
+#         
+#     for stepstaken in steps:
+# 
+#         dt = time / stepstaken
+#         u = math.exp(sigma*math.sqrt(dt))
+#         
+#         upstocks.append(s0 * u**(stepstaken))
+#         
+#     plt.figure(figsize=(8,6))
+#     plt.grid()
+#     plt.ylabel('Number of Steps in the BT',fontsize=18)
+#     plt.xlabel('Price of Up-Stock at Maturity',fontsize=18)    
+#     plt.plot(steps,upstocks)
+#     
+# 
+# =============================================================================
